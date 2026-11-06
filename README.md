@@ -266,6 +266,15 @@ L'API écoute sur `http://localhost:8080`.
 
 La collection couvre les cas nominaux, les 4 requêtes personnalisées et les cas d'erreur (400, 404, 409).
 
-## 10. Captures d'écran
+### Captures d'écran
 
 Les captures d'écran des tests sont dans le dossier [`captures/`](captures/).
+
+| Fichier                                                        | Description                                                                                   |
+|----------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
+| [`01-creer-produit-201.png`](captures/01-creer-produit-201.png) | `POST /api/produits` : création du produit « Coca-Cola 1L » lié à la catégorie « Boissons » (201) |
+| [`02-runner-63-tests-ok.png`](captures/02-runner-63-tests-ok.png) | Collection Runner : exécution complète de la collection, 63 tests réussis sur 63, 0 erreur      |
+
+![Création du produit Coca-Cola 1L (201)](captures/01-creer-produit-201.png)
+
+![Collection Runner : 63 tests réussis sur 63](captures/02-runner-63-tests-ok.png)
