@@ -3,45 +3,46 @@ package com.mouhib.projet.controller;
 import com.mouhib.projet.model.Vehicule;
 import com.mouhib.projet.service.VehiculeService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+// Status codes: 200 by default, 201 for POST, 204 for DELETE.
+// Errors (400, 404, 409) are handled by GlobalExceptionHandler.
 @RestController
 @RequestMapping("/api/vehicules")
+@RequiredArgsConstructor
 public class VehiculeController {
 
     private final VehiculeService vehiculeService;
 
-    public VehiculeController(VehiculeService vehiculeService) {
-        this.vehiculeService = vehiculeService;
-    }
-
     @GetMapping
-    public ResponseEntity<List<Vehicule>> getAll() {
-        return ResponseEntity.ok(vehiculeService.getAll());
+    public List<Vehicule> getAll() {
+        return vehiculeService.getAll();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Vehicule> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(vehiculeService.getById(id));
+    public Vehicule getById(@PathVariable Long id) {
+        return vehiculeService.getById(id);
     }
 
+    // @Valid -> checks @NotBlank, @Email, @Positive... before entering the method (400 if wrong)
     @PostMapping
-    public ResponseEntity<Vehicule> create(@Valid @RequestBody Vehicule vehicule) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(vehiculeService.create(vehicule));
+    @ResponseStatus(HttpStatus.CREATED)
+    public Vehicule create(@Valid @RequestBody Vehicule body) {
+        return vehiculeService.create(body);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Vehicule> update(@PathVariable Long id, @Valid @RequestBody Vehicule vehicule) {
-        return ResponseEntity.ok(vehiculeService.update(id, vehicule));
+    public Vehicule update(@PathVariable Long id, @Valid @RequestBody Vehicule body) {
+        return vehiculeService.update(id, body);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
         vehiculeService.delete(id);
-        return ResponseEntity.noContent().build();
     }
 }

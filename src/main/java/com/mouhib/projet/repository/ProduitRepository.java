@@ -17,4 +17,7 @@ public interface ProduitRepository extends JpaRepository<Produit, Long> {
     // Business need: list the products of one category, e.g. "Boissons"
     @Query("SELECT p FROM Produit p JOIN p.categories c WHERE c.nom = :nomCategorie")
     List<Produit> findByCategorie(@Param("nomCategorie") String nomCategorie);
+
+    // Used before deleting a category: does it still contain products?
+    boolean existsByCategoriesId(Long categorieId);
 }

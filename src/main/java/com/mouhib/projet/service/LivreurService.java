@@ -8,24 +8,18 @@ import com.mouhib.projet.model.Vehicule;
 import com.mouhib.projet.repository.CommandeRepository;
 import com.mouhib.projet.repository.LivreurRepository;
 import com.mouhib.projet.repository.VehiculeRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class LivreurService {
 
     private final LivreurRepository livreurRepository;
     private final VehiculeRepository vehiculeRepository;
     private final CommandeRepository commandeRepository;
-
-    public LivreurService(LivreurRepository livreurRepository,
-                          VehiculeRepository vehiculeRepository,
-                          CommandeRepository commandeRepository) {
-        this.livreurRepository = livreurRepository;
-        this.vehiculeRepository = vehiculeRepository;
-        this.commandeRepository = commandeRepository;
-    }
 
     public List<Livreur> getAll() {
         return livreurRepository.findAll();
@@ -33,7 +27,7 @@ public class LivreurService {
 
     public Livreur getById(Long id) {
         return livreurRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Livreur introuvable avec l'id " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Livreur", id));
     }
 
     public List<Livreur> getDisponibles() {
@@ -41,11 +35,13 @@ public class LivreurService {
     }
 
     public Livreur create(Livreur livreur) {
+        livreur.setId(null);         // always INSERT, never overwrite an existing row
         livreur.setDisponible(true); // a new driver is always available
         livreur.setVehicule(chargerVehicule(livreur.getVehicule(), null));
         return livreurRepository.save(livreur);
     }
 
+    // "disponible" is not copied: it is managed by the order actions (assigner / livrer / annuler)
     public Livreur update(Long id, Livreur data) {
         Livreur livreur = getById(id);
         livreur.setNom(data.getNom());
@@ -68,8 +64,11 @@ public class LivreurService {
         if (v == null) {
             return null; // a driver can have no vehicle
         }
+        if (v.getId() == null) {
+            throw new BusinessException("Le vehicule doit etre donne par son id");
+        }
         Vehicule vehicule = vehiculeRepository.findById(v.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Vehicule introuvable avec l'id " + v.getId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Vehicule", v.getId()));
 
         Livreur proprietaire = vehicule.getLivreur();
         if (proprietaire != null && !proprietaire.getId().equals(livreurId)) {

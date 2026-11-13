@@ -3,45 +3,46 @@ package com.mouhib.projet.controller;
 import com.mouhib.projet.model.Categorie;
 import com.mouhib.projet.service.CategorieService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+// Status codes: 200 by default, 201 for POST, 204 for DELETE.
+// Errors (400, 404, 409) are handled by GlobalExceptionHandler.
 @RestController
 @RequestMapping("/api/categories")
+@RequiredArgsConstructor
 public class CategorieController {
 
     private final CategorieService categorieService;
 
-    public CategorieController(CategorieService categorieService) {
-        this.categorieService = categorieService;
-    }
-
     @GetMapping
-    public ResponseEntity<List<Categorie>> getAll() {
-        return ResponseEntity.ok(categorieService.getAll());
+    public List<Categorie> getAll() {
+        return categorieService.getAll();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Categorie> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(categorieService.getById(id));
+    public Categorie getById(@PathVariable Long id) {
+        return categorieService.getById(id);
     }
 
+    // @Valid -> checks @NotBlank, @Email, @Positive... before entering the method (400 if wrong)
     @PostMapping
-    public ResponseEntity<Categorie> create(@Valid @RequestBody Categorie categorie) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(categorieService.create(categorie));
+    @ResponseStatus(HttpStatus.CREATED)
+    public Categorie create(@Valid @RequestBody Categorie body) {
+        return categorieService.create(body);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Categorie> update(@PathVariable Long id, @Valid @RequestBody Categorie categorie) {
-        return ResponseEntity.ok(categorieService.update(id, categorie));
+    public Categorie update(@PathVariable Long id, @Valid @RequestBody Categorie body) {
+        return categorieService.update(id, body);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
         categorieService.delete(id);
-        return ResponseEntity.noContent().build();
     }
 }

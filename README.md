@@ -63,7 +63,7 @@ Enum `StatutCommande` : `EN_ATTENTE`, `EN_COURS`, `LIVREE`, `ANNULEE`.
 | 1 | `ProduitRepository`       | `findByStockLessThan(int seuil)`         | Dérivée du nom de méthode   | Alerte stock : produits dont le stock < seuil   |
 | 2 | `ProduitRepository`       | `findByCategorie(String nomCategorie)`   | JPQL avec `JOIN` sur le ManyToMany | Produits d'une catégorie (ex. « Boissons ») |
 | 3 | `CommandeRepository`      | `findByStatut(StatutCommande statut)`    | Dérivée du nom de méthode   | Suivre les commandes par statut                 |
-| 4 | `LigneCommandeRepository` | `totalDepenseParClient(Long clientId)`   | JPQL avec calcul (`SUM`, `COALESCE`) | Montant total dépensé par un client     |
+| 4 | `LigneCommandeRepository` | `totalDepenseParClient(Long clientId)`   | JPQL avec calcul (`SUM`, `COALESCE`) | Montant total dépensé par un client (hors commandes annulées) |
 
 Requête 2 :
 ```sql
@@ -73,11 +73,13 @@ SELECT p FROM Produit p JOIN p.categories c WHERE c.nom = :nomCategorie
 Requête 4 :
 ```sql
 SELECT COALESCE(SUM(l.quantite * l.prixUnitaire), 0.0)
-FROM LigneCommande l WHERE l.commande.client.id = :clientId
+FROM LigneCommande l
+WHERE l.commande.client.id = :clientId
+  AND l.commande.statut <> StatutCommande.ANNULEE
 ```
 
 Autres méthodes dérivées utilisées par les services : `existsByEmail`, `findByClientId`,
-`existsByClientId`, `existsByLivreurId`, `existsByProduitId`, `findByDisponibleTrue`.
+`existsByClientId`, `existsByLivreurId`, `existsByProduitId`, `existsByCategoriesId`, `findByDisponibleTrue`.
 
 ## 4. Règles métier
 
@@ -107,6 +109,7 @@ EN_ATTENTE --(assigner livreur)--> EN_COURS --(livrer)--> LIVREE
 - Suppression : seule une commande `LIVREE` ou `ANNULEE` peut être supprimée (les lignes sont supprimées en cascade).
 
 **Autres règles**
+- Un `id` envoyé dans le corps d'un `POST` est ignoré : une création n'écrase jamais une ligne existante.
 - Email client unique (création et modification).
 - Nom de catégorie et immatriculation de véhicule uniques (contrainte en base).
 - Un nouveau livreur est toujours disponible ; un véhicule ne peut être attribué qu'à un seul livreur.
