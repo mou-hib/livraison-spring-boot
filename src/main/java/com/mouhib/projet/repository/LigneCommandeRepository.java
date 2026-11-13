@@ -8,10 +8,12 @@ import org.springframework.data.repository.query.Param;
 public interface LigneCommandeRepository extends JpaRepository<LigneCommande, Long> {
 
     // CUSTOM QUERY 4 (JPQL with calculation)
-    // Business need: how much has a client spent in total?
+    // Business need: how much has a client spent in total? (cancelled orders are not counted)
     // COALESCE returns 0 instead of null when the client has no orders
     @Query("SELECT COALESCE(SUM(l.quantite * l.prixUnitaire), 0.0) " +
-           "FROM LigneCommande l WHERE l.commande.client.id = :clientId")
+           "FROM LigneCommande l " +
+           "WHERE l.commande.client.id = :clientId " +
+           "AND l.commande.statut <> com.mouhib.projet.model.StatutCommande.ANNULEE")
     double totalDepenseParClient(@Param("clientId") Long clientId);
 
     // Used before deleting a product: is it in an order?

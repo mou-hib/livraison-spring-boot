@@ -4,18 +4,16 @@ import com.mouhib.projet.exception.BusinessException;
 import com.mouhib.projet.exception.ResourceNotFoundException;
 import com.mouhib.projet.model.Vehicule;
 import com.mouhib.projet.repository.VehiculeRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class VehiculeService {
 
     private final VehiculeRepository vehiculeRepository;
-
-    public VehiculeService(VehiculeRepository vehiculeRepository) {
-        this.vehiculeRepository = vehiculeRepository;
-    }
 
     public List<Vehicule> getAll() {
         return vehiculeRepository.findAll();
@@ -23,10 +21,11 @@ public class VehiculeService {
 
     public Vehicule getById(Long id) {
         return vehiculeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Vehicule introuvable avec l'id " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Vehicule", id));
     }
 
     public Vehicule create(Vehicule vehicule) {
+        vehicule.setId(null); // always INSERT, never overwrite an existing row
         return vehiculeRepository.save(vehicule);
     }
 

@@ -7,25 +7,19 @@ import com.mouhib.projet.model.Produit;
 import com.mouhib.projet.repository.CategorieRepository;
 import com.mouhib.projet.repository.LigneCommandeRepository;
 import com.mouhib.projet.repository.ProduitRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class ProduitService {
 
     private final ProduitRepository produitRepository;
     private final CategorieRepository categorieRepository;
     private final LigneCommandeRepository ligneCommandeRepository;
-
-    public ProduitService(ProduitRepository produitRepository,
-                          CategorieRepository categorieRepository,
-                          LigneCommandeRepository ligneCommandeRepository) {
-        this.produitRepository = produitRepository;
-        this.categorieRepository = categorieRepository;
-        this.ligneCommandeRepository = ligneCommandeRepository;
-    }
 
     public List<Produit> getAll() {
         return produitRepository.findAll();
@@ -33,10 +27,11 @@ public class ProduitService {
 
     public Produit getById(Long id) {
         return produitRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Produit introuvable avec l'id " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Produit", id));
     }
 
     public Produit create(Produit produit) {
+        produit.setId(null); // always INSERT, never overwrite an existing row
         produit.setCategories(chargerCategories(produit.getCategories()));
         return produitRepository.save(produit);
     }
@@ -74,9 +69,11 @@ public class ProduitService {
             return resultat;
         }
         for (Categorie c : categories) {
-            Categorie categorie = categorieRepository.findById(c.getId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Categorie introuvable avec l'id " + c.getId()));
-            resultat.add(categorie);
+            if (c == null || c.getId() == null) {
+                throw new BusinessException("Chaque categorie doit etre donnee par son id");
+            }
+            resultat.add(categorieRepository.findById(c.getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Categorie", c.getId())));
         }
         return resultat;
     }

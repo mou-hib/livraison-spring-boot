@@ -8,25 +8,18 @@ import com.mouhib.projet.model.Commande;
 import com.mouhib.projet.repository.ClientRepository;
 import com.mouhib.projet.repository.CommandeRepository;
 import com.mouhib.projet.repository.LigneCommandeRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class ClientService {
 
     private final ClientRepository clientRepository;
     private final CommandeRepository commandeRepository;
     private final LigneCommandeRepository ligneCommandeRepository;
-
-    // Constructor injection: Spring gives us the repositories automatically
-    public ClientService(ClientRepository clientRepository,
-                         CommandeRepository commandeRepository,
-                         LigneCommandeRepository ligneCommandeRepository) {
-        this.clientRepository = clientRepository;
-        this.commandeRepository = commandeRepository;
-        this.ligneCommandeRepository = ligneCommandeRepository;
-    }
 
     public List<Client> getAll() {
         return clientRepository.findAll();
@@ -34,21 +27,23 @@ public class ClientService {
 
     public Client getById(Long id) {
         return clientRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Client introuvable avec l'id " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Client", id));
     }
 
     public Client create(Client client) {
         if (clientRepository.existsByEmail(client.getEmail())) {
             throw new ConflictException("Un client avec cet email existe deja");
         }
+        client.setId(null); // always INSERT, never overwrite an existing row
         return clientRepository.save(client);
     }
 
     public Client update(Long id, Client data) {
         Client client = getById(id);
 
-        // Email changed -> check that the new email is not used by someone else
-        if (!client.getEmail().equals(data.getEmail()) && clientRepository.existsByEmail(data.getEmail())) {
+        // Email changed -> the new email must not be used by someone else
+        boolean emailChange = !client.getEmail().equals(data.getEmail());
+        if (emailChange && clientRepository.existsByEmail(data.getEmail())) {
             throw new ConflictException("Un client avec cet email existe deja");
         }
 
